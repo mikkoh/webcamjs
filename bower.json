@@ -1,0 +1,25 @@
+{
+  "name": "webcamjs",
+  "version": "0.0.0",
+  "homepage": "https://github.com/MikkoH/webcamjs",
+  "authors": [
+    "Mikko Haapoja <me@mikkoh.com>"
+  ],
+  "description": "This is a fork of https://github.com/jhuckaby/webcamjs. Which gives you a webcam which gets rendered to an image either via getusermedia or flash",
+  "main": "webcam.js",
+  "keywords": [
+    "webcam",
+    "flash",
+    "datauri",
+    "image"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "app/components",
+    "test",
+    "tests"
+  ]
+}

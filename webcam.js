@@ -144,6 +144,7 @@ var Webcam = {
 		else {
 			// flash fallback
 			elem.innerHTML = this.getSWFHTML();
+			this.flashMovie = this.getMovie();
 		}
 	},
 	
@@ -280,7 +281,7 @@ var Webcam = {
 		}
 		else {
 			// flash fallback
-			var raw_data = this.getMovie()._snap();
+			var raw_data = this.flashMovie._snap();
 			return 'data:image/'+this.params.image_format+';base64,' + raw_data;
 		}
 	},
@@ -289,7 +290,7 @@ var Webcam = {
 		// open flash configuration panel -- specify tab name:
 		// "camera", "privacy", "default", "localStorage", "microphone", "settingsManager"
 		if (!panel) panel = "camera";
-		this.getMovie()._configure(panel);
+		this.flashMovie._configure(panel);
 	},
 	
 	flashNotify: function(type, msg) {
