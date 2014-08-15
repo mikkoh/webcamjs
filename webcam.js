@@ -142,9 +142,11 @@ var Webcam = {
 			});
 		}
 		else {
+
+			this.movie = null;
+
 			// flash fallback
 			elem.innerHTML = this.getSWFHTML();
-			this.flashMovie = this.getMovie();
 		}
 	},
 	
@@ -261,12 +263,18 @@ var Webcam = {
 	},
 	
 	getMovie: function() {
-		// get reference to movie object/embed in DOM
-		if (!this.loaded) return this.dispatch('error', "Flash Movie is not loaded yet");
-		var movie = document.getElementById('webcam_movie_obj');
-		if (!movie || !movie._snap) movie = document.getElementById('webcam_movie_embed');
-		if (!movie) this.dispatch('error', "Cannot locate Flash movie in DOM");
-		return movie;
+
+		if( !this.movie ) {
+
+			if (!this.loaded) return this.dispatch('error', "Flash Movie is not loaded yet");
+			var movie = document.getElementById('webcam_movie_obj');
+			if (!movie || !movie._snap) movie = document.getElementById('webcam_movie_embed');
+			if (!movie) this.dispatch('error', "Cannot locate Flash movie in DOM");
+
+			this.movie = movie;
+		}
+
+		return this.movie;
 	},
 	
 	snap: function() {
@@ -281,7 +289,9 @@ var Webcam = {
 		}
 		else {
 			// flash fallback
-			var raw_data = this.flashMovie._snap();
+			console.log( 'IN SNAP', this.getMovie() );
+			var raw_data = this.getMovie()._snap();
+			console.log( 'RAW', raw_data );
 			return 'data:image/'+this.params.image_format+';base64,' + raw_data;
 		}
 	},
@@ -290,7 +300,7 @@ var Webcam = {
 		// open flash configuration panel -- specify tab name:
 		// "camera", "privacy", "default", "localStorage", "microphone", "settingsManager"
 		if (!panel) panel = "camera";
-		this.flashMovie._configure(panel);
+		this.getMovie()._configure(panel);
 	},
 	
 	flashNotify: function(type, msg) {
@@ -299,6 +309,7 @@ var Webcam = {
 			case 'flashLoadComplete':
 				// movie loaded successfully
 				this.loaded = true;
+				this.getMovie(); //this will ensure we have a reference always and forever
 				this.dispatch('load');
 				break;
 			
