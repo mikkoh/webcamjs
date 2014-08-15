@@ -289,9 +289,9 @@ var Webcam = {
 		}
 		else {
 			// flash fallback
-			console.log( 'IN SNAP', this.getMovie() );
+	
 			var raw_data = this.getMovie()._snap();
-			console.log( 'RAW', raw_data );
+			
 			return 'data:image/'+this.params.image_format+';base64,' + raw_data;
 		}
 	},
