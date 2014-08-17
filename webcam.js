@@ -277,7 +277,7 @@ var Webcam = {
 		return this.movie;
 	},
 	
-	snap: function() {
+	snap: function( doBase64 ) {
 		// take snapshot and return image data uri
 		if (!this.loaded) return this.dispatch('error', "Webcam is not loaded yet");
 		if (!this.live) return this.dispatch('error', "Webcam is not live yet");
@@ -285,14 +285,21 @@ var Webcam = {
 		if (this.userMedia) {
 			// native implementation
 			this.context.drawImage(this.video, 0, 0, this.params.dest_width, this.params.dest_height);
-			return this.canvas.toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
+
+			if( doBase64 )
+				return this.canvas.toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
 		}
 		else {
 			// flash fallback
 	
-			var raw_data = this.getMovie()._snap();
+			if( !doBase64 ) {
+				var raw_data = this.getMovie()._snap();
 			
-			return 'data:image/'+this.params.image_format+';base64,' + raw_data;
+				return 'data:image/'+this.params.image_format+';base64,' + raw_data;
+			} else {
+
+				throw 'You cannot be using the Flash fallback and pass in false for doBase64';
+			}
 		}
 	},
 	
