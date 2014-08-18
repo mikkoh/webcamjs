@@ -277,14 +277,27 @@ var Webcam = {
 		return this.movie;
 	},
 	
-	snap: function( doBase64 ) {
+	snap: function( targetWidth, targetHeight, doBase64 ) {
+
+		if( typeof targetWidth == 'boolean' ) {
+
+			doBase64 = targetWidth;
+			targetWidth = undefined;
+			targetHeight = undefined;
+		}
+
+		targetWidth = targetWidth ? targetWidth : this.params.dest_width;
+		targetHeight = targetHeight ? targetHeight : this.params.dest_height;
+
 		// take snapshot and return image data uri
 		if (!this.loaded) return this.dispatch('error', "Webcam is not loaded yet");
 		if (!this.live) return this.dispatch('error', "Webcam is not live yet");
 		
 		if (this.userMedia) {
 			// native implementation
-			this.context.drawImage(this.video, 0, 0, this.params.dest_width, this.params.dest_height);
+			this.canvas.width = targetWidth;
+			this.canvas.height = targetHeight;
+			this.context.drawImage(this.video, 0, 0, targetWidth, targetHeight );
 
 			if( doBase64 )
 				return this.canvas.toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
@@ -293,7 +306,7 @@ var Webcam = {
 			// flash fallback
 	
 			if( doBase64 ) {
-				var raw_data = this.getMovie()._snap();
+				var raw_data = this.getMovie()._snap( targetWidth, targetHeight );
 			
 				return 'data:image/'+this.params.image_format+';base64,' + raw_data;
 			} else {
