@@ -292,7 +292,7 @@ var Webcam = {
 		else {
 			// flash fallback
 	
-			if( !doBase64 ) {
+			if( doBase64 ) {
 				var raw_data = this.getMovie()._snap();
 			
 				return 'data:image/'+this.params.image_format+';base64,' + raw_data;
