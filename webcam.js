@@ -125,17 +125,29 @@ var Webcam = {
 			// ask user for access to their camera
 			var self = this;
 			navigator.getUserMedia({
-				"audio": false,
-				"video": true
+				audio: false,
+				video: {
+
+					mandatory: {
+
+						minWidth: this.params.width,
+						minHeight: this.params.height
+					}
+				}
 			}, 
 			function(stream) {
+
 				// got access, attach stream to video
+				video.addEventListener( 'canplay', function() {
+
+					console.log( 'IN PLAY' );
+					Webcam.loaded = true;
+					Webcam.live = true;
+					Webcam.dispatch('load');
+					Webcam.dispatch('live');
+				});
 				video.src = window.URL.createObjectURL( stream ) || stream;
 				Webcam.stream = stream;
-				Webcam.loaded = true;
-				Webcam.live = true;
-				Webcam.dispatch('load');
-				Webcam.dispatch('live');
 			},
 			function(err) {
 				return self.dispatch('error', "Could not access webcam.");
@@ -277,17 +289,7 @@ var Webcam = {
 		return this.movie;
 	},
 	
-	snap: function( targetWidth, targetHeight, doBase64 ) {
-
-		if( typeof targetWidth == 'boolean' ) {
-
-			doBase64 = targetWidth;
-			targetWidth = undefined;
-			targetHeight = undefined;
-		}
-
-		targetWidth = targetWidth ? targetWidth : this.params.dest_width;
-		targetHeight = targetHeight ? targetHeight : this.params.dest_height;
+	snap: function( doBase64 ) {
 
 		// take snapshot and return image data uri
 		if (!this.loaded) return this.dispatch('error', "Webcam is not loaded yet");
@@ -295,9 +297,9 @@ var Webcam = {
 		
 		if (this.userMedia) {
 			// native implementation
-			this.canvas.width = targetWidth;
-			this.canvas.height = targetHeight;
-			this.context.drawImage(this.video, 0, 0, targetWidth, targetHeight );
+			this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height );
+
+			console.log( this.canvas.width, this.canvas.height );
 
 			if( doBase64 )
 				return this.canvas.toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
@@ -306,7 +308,7 @@ var Webcam = {
 			// flash fallback
 	
 			if( doBase64 ) {
-				var raw_data = this.getMovie()._snap( targetWidth, targetHeight );
+				var raw_data = this.getMovie()._snap();
 			
 				return 'data:image/'+this.params.image_format+';base64,' + raw_data;
 			} else {
