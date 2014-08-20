@@ -31,8 +31,9 @@ var Webcam = {
 	swfURL: '', // URI to webcam.swf movie (defaults to cwd)
 	loaded: false, // true when webcam movie finishes loading
 	live: false, // true when webcam is initialized and ready to snap
-	userMedia: true, // true when getUserMedia is supported natively
-	
+	userMedia: true, // true when getUserMedia is supported natively,
+	highResCaptures: {},
+
 	params: {
 		width: 0,
 		height: 0,
@@ -288,6 +289,54 @@ var Webcam = {
 
 		return this.movie;
 	},
+
+	saveHighRes: function( id ) {
+
+		if( this.userMedia ) {
+
+			var canvas = document.createElement( 'canvas' ),
+				ctx = canvas.getContext( '2d' );
+
+			this.highResCaptures[ id ] = canvas;
+			canvas.width = this.params.width;
+			canvas.height = this.params.height;
+
+			ctx.drawImage( this.video, 0, 0, canvas.width, canvas.height );
+		} else {
+
+			this.getMovie()._saveHighRes( id.toString() );
+		}
+	},
+
+	deleteHighRes: function( id ) {
+
+		if( this.userMedia ) {
+
+			this.highResCaptures[ id ] = undefined;
+		} else {
+
+			this.getMovie()._deleteHighRes( id );
+		}
+	},
+
+	getHighRes: function( id ) {
+
+		if( this.userMedia ) {
+
+			if( this.highResCaptures[ id ] )
+				return this.highResCaptures[ id ].toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
+			else
+				return null;
+		} else {
+
+			var raw_data = this.getMovie()._getHighRes( id );
+
+			if( raw_data )
+				return 'data:image/'+this.params.image_format+';base64,' + raw_data;
+			else
+				return null;
+		}
+	},
 	
 	snap: function( doBase64 ) {
 
@@ -296,10 +345,9 @@ var Webcam = {
 		if (!this.live) return this.dispatch('error', "Webcam is not live yet");
 		
 		if (this.userMedia) {
-			// native implementation
-			this.context.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height );
 
-			console.log( this.canvas.width, this.canvas.height );
+			// native implementation
+			this.context.drawImage( this.video, 0, 0, this.params.dest_width, this.params.dest_height );
 
 			if( doBase64 )
 				return this.canvas.toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
@@ -326,6 +374,9 @@ var Webcam = {
 	},
 	
 	flashNotify: function(type, msg) {
+
+		console.log( 'FLASH', type, msg );
+
 		// receive notification from flash about event
 		switch (type) {
 			case 'flashLoadComplete':
