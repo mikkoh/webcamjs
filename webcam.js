@@ -34,16 +34,6 @@ var Webcam = {
 	userMedia: true, // true when getUserMedia is supported natively,
 	highResCaptures: {},
 
-	params: {
-		width: 0,
-		height: 0,
-		dest_width: 0, // size of captured image
-		dest_height: 0, // these default to width/height
-		image_format: 'jpeg', // image format (may be jpeg or png)
-		jpeg_quality: 90, // jpeg image quality from 0 (worst) to 100 (best)
-		force_flash: false // force flash mode
-	},
-	
 	hooks: {
 		load: null,
 		live: null,
@@ -90,26 +80,26 @@ var Webcam = {
 			// setup webcam video container
 			var video = document.createElement('video');
 			video.setAttribute('autoplay', 'autoplay');
-			video.style.width = '' + this.params.dest_width + 'px';
-			video.style.height = '' + this.params.dest_height + 'px';
+			// video.style.width = '' + this.params.dest_width + 'px';
+			// video.style.height = '' + this.params.dest_height + 'px';
 			
 			// adjust scale if dest_width or dest_height is different
-			var scaleX = this.params.width / this.params.dest_width;
-			var scaleY = this.params.height / this.params.dest_height;
+			// var scaleX = this.params.width / this.params.dest_width;
+			// var scaleY = this.params.height / this.params.dest_height;
 			
-			if ((scaleX != 1.0) || (scaleY != 1.0)) {
-				elem.style.overflow = 'visible';
-				video.style.webkitTransformOrigin = '0px 0px';
-				video.style.mozTransformOrigin = '0px 0px';
-				video.style.msTransformOrigin = '0px 0px';
-				video.style.oTransformOrigin = '0px 0px';
-				video.style.transformOrigin = '0px 0px';
-				video.style.webkitTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
-				video.style.mozTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
-				video.style.msTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
-				video.style.oTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
-				video.style.transform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
-			}
+			// if ((scaleX != 1.0) || (scaleY != 1.0)) {
+			// 	elem.style.overflow = 'visible';
+			// 	video.style.webkitTransformOrigin = '0px 0px';
+			// 	video.style.mozTransformOrigin = '0px 0px';
+			// 	video.style.msTransformOrigin = '0px 0px';
+			// 	video.style.oTransformOrigin = '0px 0px';
+			// 	video.style.transformOrigin = '0px 0px';
+			// 	video.style.webkitTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
+			// 	video.style.mozTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
+			// 	video.style.msTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
+			// 	video.style.oTransform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
+			// 	video.style.transform = 'scaleX('+scaleX+') scaleY('+scaleY+')';
+			// }
 			
 			// add video element to dom
 			elem.appendChild( video );
@@ -117,8 +107,8 @@ var Webcam = {
 			
 			// create offscreen canvas element to hold pixels later on
 			var canvas = document.createElement('canvas');
-			canvas.width = this.params.dest_width;
-			canvas.height = this.params.dest_height;
+			// canvas.width = this.params.dest_width;
+			// canvas.height = this.params.dest_height;
 			var context = canvas.getContext('2d');
 			this.context = context;
 			this.canvas = canvas;
@@ -141,15 +131,48 @@ var Webcam = {
 				// got access, attach stream to video
 				video.addEventListener( 'canplay', function() {
 
-					console.log( 'IN PLAY' );
 					Webcam.loaded = true;
 					Webcam.live = true;
-					Webcam.dispatch('load');
-					Webcam.dispatch('live');
-				});
+
+					var checkWidthHeight = function() {
+
+						if( video.videoWidth > 0 && video.videoHeight > 0 ) {
+
+							var scale = this.params.dest_width / this.params.width,
+								oWidth = this.params.dest_width;
+
+							this.params.dest_width = video.videoWidth * scale;
+							this.params.dest_height = video.videoHeight * scale;
+
+							if( this.params.dest_width < oWidth ) {
+
+								scale = oWidth / this.params.dest_width;
+								this.params.dest_width *= scale;
+								this.params.dest_height *= scale;
+							}
+
+							this.params.width = video.videoWidth;
+							this.params.height = video.videoHeight;
+
+							this.canvas.width = this.params.dest_width;
+							this.canvas.height = this.params.dest_height;
+
+							video.style.width = video.videoWidth + 'px';
+							video.style.height = video.videoHeight + 'px';
+
+							Webcam.dispatch('load');
+							Webcam.dispatch('live');
+						} else {
+
+							setTimeout( checkWidthHeight, 33 );
+						}
+					}.bind( this );
+
+					checkWidthHeight();
+				}.bind( this ));
 				video.src = window.URL.createObjectURL( stream ) || stream;
 				Webcam.stream = stream;
-			},
+			}.bind( this ),
 			function(err) {
 				return self.dispatch('error', "Could not access webcam.");
 			});
@@ -180,17 +203,28 @@ var Webcam = {
 		this.live = false;
 	},
 	
-	set: function() {
-		// set one or more params
-		// variable argument list: 1 param = hash, 2 params = key, value
-		if (arguments.length == 1) {
-			for (var key in arguments[0]) {
-				this.params[key] = arguments[0][key];
-			}
-		}
-		else {
-			this.params[ arguments[0] ] = arguments[1];
-		}
+	set: function( params ) {
+
+		// this.params = {
+
+		// 	width: params.width || 0,
+		// 	height: params.height || 0,
+		// 	dest_width: params.dest_width || 0,
+		// 	dest_height: params.dest_height || 0,
+		// 	image_format: params.image_format || 'jpeg',
+		// 	jpeg_quality: params.jpeg_quality || 90,
+		// 	force_flash: params.force_flash || false
+		// };
+
+		params.width = params.width || 0;
+		params.height = params.height || 0;
+		params.dest_width = params.dest_width || 0;
+		params.dest_height = params.dest_height || 0;
+		params.image_format = params.image_format || 'jpeg';
+		params.jpeg_quality = params.jpeg_quality || 90;
+		params.force_flash = params.force_flash || false;
+
+		this.params = params;
 	},
 	
 	on: function(name, callback) {
@@ -347,7 +381,7 @@ var Webcam = {
 		if (this.userMedia) {
 
 			// native implementation
-			this.context.drawImage( this.video, 0, 0, this.params.dest_width, this.params.dest_height );
+			this.context.drawImage( this.video, 0, 0, this.canvas.width, this.canvas.height );
 
 			if( doBase64 )
 				return this.canvas.toDataURL('image/' + this.params.image_format, this.params.jpeg_quality / 100 );
@@ -374,8 +408,6 @@ var Webcam = {
 	},
 	
 	flashNotify: function(type, msg) {
-
-		console.log( 'FLASH', type, msg );
 
 		// receive notification from flash about event
 		switch (type) {
