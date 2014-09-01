@@ -116,7 +116,7 @@ var Webcam = {
 			// ask user for access to their camera
 			var self = this;
 			navigator.getUserMedia({
-				audio: false,
+				audio: this.params.audio || false,
 				video: {
 
 					mandatory: {
