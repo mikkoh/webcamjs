@@ -134,6 +134,18 @@ var Webcam = {
 					Webcam.loaded = true;
 					Webcam.live = true;
 
+					if( this.params.audio ) {
+
+						var audioContext = new AudioContext();
+
+						this.audioInput = audioContext.createMediaStreamSource( stream );
+						this.volume = audioContext.createGain();
+						this.audioInput.connect( this.volume );
+						this.volume.connect( audioContext.destination );
+
+						this.volume.gain.value = 0;
+					}
+
 					var checkWidthHeight = function() {
 
 						if( video.videoWidth > 0 && video.videoHeight > 0 ) {
