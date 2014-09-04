@@ -138,12 +138,18 @@ var Webcam = {
 
 						var audioContext = new AudioContext();
 
-						this.audioInput = audioContext.createMediaStreamSource( stream );
-						this.volume = audioContext.createGain();
-						this.audioInput.connect( this.volume );
-						this.volume.connect( audioContext.destination );
+						try {
+							this.audioInput = audioContext.createMediaStreamSource( stream );
+						} catch(err){
+							console.log(err);
+						} finally {
+							this.volume = audioContext.createGain();
+							this.audioInput.connect( this.volume );
+							this.volume.connect( audioContext.destination );
 
-						this.volume.gain.value = 0;
+							this.volume.gain.value = 0;
+						}
+		
 					}
 
 					var checkWidthHeight = function() {
