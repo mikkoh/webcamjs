@@ -140,14 +140,12 @@ var Webcam = {
 
 						try {
 							this.audioInput = audioContext.createMediaStreamSource( stream );
-						} catch(err){
-							console.log(err);
-						} finally {
 							this.volume = audioContext.createGain();
 							this.audioInput.connect( this.volume );
 							this.volume.connect( audioContext.destination );
-
 							this.volume.gain.value = 0;
+						} catch(err){
+							console.log(err);
 						}
 		
 					}
