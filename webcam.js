@@ -119,11 +119,11 @@ var Webcam = {
 				audio: this.params.audio || false,
 				video: {
 
-					mandatory: {
-
-						minWidth: this.params.width,
-						minHeight: this.params.height
-					}
+					mandatory: {},
+					optional: [
+						{ minWidth: this.params.width },
+						{ minHeight: this.params.height }
+					]
 				}
 			}, 
 			function(stream) {
