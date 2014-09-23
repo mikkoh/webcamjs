@@ -136,16 +136,19 @@ var Webcam = {
 
 					if( this.params.audio ) {
 
-						var audioContext = new AudioContext();
+						var AudioContext = window.AudioContext || window.webkitAudioContext;
+						if( AudioContext ) {
+							var audioContext = new AudioContext();
 
-						try {
-							this.audioInput = audioContext.createMediaStreamSource( stream );
-							this.volume = audioContext.createGain();
-							this.audioInput.connect( this.volume );
-							this.volume.connect( audioContext.destination );
-							this.volume.gain.value = 0;
-						} catch(err){
-							console.log(err);
+							try {
+								this.audioInput = audioContext.createMediaStreamSource( stream );
+								this.volume = audioContext.createGain();
+								this.audioInput.connect( this.volume );
+								this.volume.connect( audioContext.destination );
+								this.volume.gain.value = 0;
+							} catch(err){
+								console.log(err);
+							}
 						}
 		
 					}
